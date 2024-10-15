@@ -23,7 +23,6 @@
                             <button type="submit">delete</button>
                         </form>
                     </td>
-
                 @endforeach
             </tbody>
         </table>

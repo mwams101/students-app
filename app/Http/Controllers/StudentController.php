@@ -6,6 +6,7 @@ use App\Models\Course;
 use App\Models\Student;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 
 class StudentController extends Controller
 {
@@ -14,18 +15,17 @@ class StudentController extends Controller
      */
     public function index()
     {
-        $students = Student::with(['user', 'course'])->get();
+        $students = Student::all();
         return view('students.index', compact('students'));
     }
 
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function create(Request $request)
     {
-        $users = User::all();
         $courses = Course::all();
-        return view('students.create', compact('users', 'courses'));
+        return view('students.create', compact('courses'));
     }
 
     /**
@@ -33,25 +33,31 @@ class StudentController extends Controller
      */
     public function store(Request $request)
     {
+
         $request->validate([
-            'user_id' => 'required|exists:users,id',
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users',
+            'password' => 'required|string|min:8',
             'course_id' => 'required|exists:courses,id',
-            'photo' => 'required|image|mimes:jpg,jpeg,png|max:2048',
+            'photo' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048'
         ]);
 
-        // Handle the photo upload
-        if ($request->hasFile('photo')) {
-            $photoPath = $request->file('photo')->store('photos', 'public');
-        }
+        $user = User::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => Hash::make($request->password), // Hash the password
+        ]);
 
-        // Create the student
-        Student::create([
-            'user_id' => $request->user_id,
+        $photoPath = $request->file('photo')->store('images', 'public');
+
+        $student = Student::create([
+            'user_id' => $user->id,
             'course_id' => $request->course_id,
             'photo' => $photoPath,
         ]);
 
-        return redirect()->route('students.index')->with('success', 'Student created successfully.');
+
+        return redirect()->route('students.index')->with('success', 'Student created successfully');
 
     }
 
@@ -60,7 +66,7 @@ class StudentController extends Controller
      */
     public function show(Student $student)
     {
-        return view('students.show', compact('student'));
+//        return view('students.show', compact('student'));
     }
 
     /**
@@ -76,7 +82,8 @@ class StudentController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Student $student)
+    public
+    function update(Request $request, Student $student)
     {
         $request->validate([
             'user_id' => 'required|exists:users,id',
@@ -103,7 +110,8 @@ class StudentController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Student $student)
+    public
+    function destroy(Student $student)
     {
         $student->delete();
         return redirect()->route('students.index')->with('success', 'Student deleted successfully.');

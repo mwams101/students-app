@@ -1,7 +1,8 @@
 @extends('base')
 @section('content')
     <h1>Students</h1>
-    <a href="{{ route('students.create') }}">Create New Student</a>    @if($students->count() === 0)
+    <a href="{{ route('students.create') }}">Create New Student</a>
+    @if($students->count() === 0)
         <div> NO students available</div>
     @else
         <!-- List of students -->
